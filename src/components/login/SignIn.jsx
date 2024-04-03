@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState } from "react";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -10,37 +10,48 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 
 const defaultTheme = createTheme({
   direction: "rtl",
 });
 
 function SignIn() {
-  const [userName, setUserName] = useState("fatemeh");
-  const [password, setPassword] = useState("@123");
+  const [formData, setFormData] = useState({
+    userName: "fatemeh",
+    password: "@123",
+    loading: false,
+    error: null,
+    success: false,
+  });
   const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setFormData({ ...formData, loading: true });
 
-    const body = {
-      username: userName,
-      password: password,
-    };
-    await axios
-      .post("http://rezayari.ir:5050/Auth/Login", body)
-      .then((response) => {
-        console.log(response.data);
-        console.log(response);
-        console.log(response.status);
-      })
-      .catch((error) => {
-        alert(error.response.data.message);
+    try {
+      const response = await axios.post("http://rezayari.ir:5050/Auth/Login", {
+        username: formData.userName,
+        password: formData.password,
       });
-    if (userName === "fatemeh" && password === "fatemeh@123") {
+
+      console.log(response.data);
+      console.log(response.status);
+
       navigate("/Home");
+    } catch (error) {
+      setFormData({ ...formData, error: error.response.data.message });
     }
+
+    setFormData({ ...formData, loading: false });
   };
 
   return (
@@ -77,8 +88,8 @@ function SignIn() {
               name="userName"
               autoComplete="userName"
               autoFocus
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
+              value={formData.userName}
+              onChange={handleChange}
               sx={{ textAlign: "right" }}
             />
             <TextField
@@ -90,8 +101,8 @@ function SignIn() {
               type="password"
               id="password"
               autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={handleChange}
               sx={{ textAlign: "right" }}
             />
 
@@ -100,9 +111,13 @@ function SignIn() {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={formData.loading}
             >
-              ورود
+              {formData.loading ? ".رمز عبور اشتباه است.." : "ورود"}
             </Button>
+            {formData.error && (
+              <Typography color="error">{formData.error}</Typography>
+            )}
           </Box>
         </Box>
       </Container>
