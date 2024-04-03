@@ -24,7 +24,6 @@ function SignIn() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-
     const body = {
       username: userName,
       password: password,
